@@ -32,3 +32,66 @@ const products = [
     image: "https://cdn.pixabay.com/photo/2014/10/22/17/22/motorcycle-498244_640.jpg" 
   }
 ];
+
+let cart = JSON.parse(localStorage.getItem("cart")) || [];
+
+const grid = document.getElementById("product-grid");
+const cartToggle = document.getElementById("cart-toggle");
+const cartSidebar = document.getElementById("cart-sidebar");
+const cartItems = document.getElementById("cart-items");
+const cartTotal = document.getElementById("cart-total");
+const cartCount = document.getElementById("cart-count");
+
+products.forEach(p => {
+  const div = document.createElement("div");
+  div.className = "product";
+  div.innerHTML = `
+    <img src="${p.image}" alt="${p.name}">
+    <h3>${p.name}</h3>
+    <p>${p.desc}</p>
+    <p>$${p.price}</p>
+    <button data-id="${p.id}">Add to Cart</button>
+  `;
+  grid.appendChild(div);
+});
+
+grid.addEventListener("click", e => {
+  if (e.target.tagName === "BUTTON") {
+    const id = +e.target.dataset.id;
+    const existing = cart.find(item => item.id === id);
+    if (existing) {
+      existing.quantity += 1;
+    } else {
+      cart.push({ id, quantity: 1 });
+    }
+    saveCart();
+    updateCartUI();
+  }
+});
+
+cartToggle.addEventListener("click", () => {
+  cartSidebar.classList.toggle("hidden");
+});
+
+function saveCart() {
+  localStorage.setItem("cart", JSON.stringify(cart));
+}
+
+function updateCartUI() {
+  cartItems.innerHTML = "";
+  let total = 0;
+  let count = 0;
+  cart.forEach(({ id, quantity }) => {
+    const p = products.find(x => x.id === id);
+    total += p.price * quantity;
+    count += quantity;
+    const li = document.createElement("li");
+    li.textContent = `${p.name} x${quantity} — $${p.price * quantity}`;
+    cartItems.appendChild(li);
+  });
+  cartCount.textContent = count;
+  cartTotal.textContent = `Total: $${total}`;
+}
+
+updateCartUI();
+
